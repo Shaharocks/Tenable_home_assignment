@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-03-01",
+      "name": "positive-1",
+      "location": "westus",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_E4s_v3"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition-hotpatch-smalldisk",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            },
+            "diskSizeGB": 30
+          }
+        },
+        "osProfile": {
+          "computerName": "pc-6",
+          "adminUsername": "adminuser",
+          "adminPassword": "YourPassword123!"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'example6-nic')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-03-01",
+      "name": "positive-2",
+      "location": "westus",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Basic_A0"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition-hotpatch-smalldisk",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            },
+            "diskSizeGB": 30
+          }
+        },
+        "osProfile": {
+          "computerName": "pc-6",
+          "adminUsername": "adminuser",
+          "adminPassword": "YourPassword123!"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'example6-nic')]"
+            }
+          ]
+        },
+        "securityProfile": {
+          "securityType": "ConfidentialVM"
+        }
+      }
+    }
+  ]
+}

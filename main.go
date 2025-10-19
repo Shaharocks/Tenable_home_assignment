@@ -20,108 +20,16 @@ const (
 	resourceType = "toy_resource"
 )
 
-// findLineNumber finds the line number for a given dot-notated path in JSON
-// func findLineNumber(jsonContent string, path string) int {
-// 	lines := strings.Split(jsonContent, "\n")
-// 	parts := strings.Split(path, ".")
-// 	currentLine := 0
-// 	lastKeyLine := 0 // the last line where we matched a non-array key
-// 	partIndex := 0
-
-// 	lineNum := 0
-// 	N := len(lines)
-
-// 	for lineNum < N {
-// 		line := lines[lineNum]
-// 		trimmed := strings.TrimSpace(line)
-
-// 		// Skip empty lines and schema lines
-// 		if trimmed == "" || strings.HasPrefix(trimmed, "\"$schema\"") ||
-// 			strings.HasPrefix(trimmed, "\"contentVersion\"") {
-// 			lineNum++
-// 			continue
-// 		}
-
-// 		if partIndex >= len(parts) {
-// 			return currentLine
-// 		}
-
-// 		currentPart := parts[partIndex]
-
-// 		// If this part is an array index: find the correct element start
-// 		if isArrayIndex(currentPart) {
-// 			targetIdx, _ := strconv.Atoi(currentPart)
-
-// 			// Find the first "{" after lastKeyLine - that will be the first array element start.
-// 			foundLine := -1
-// 			baseIndent := -1
-// 			for l := lastKeyLine; l < N; l++ {
-// 				if strings.TrimSpace(lines[l]) == "{" {
-// 					// this is candidate first element; record its indent
-// 					baseIndent = len(lines[l]) - len(strings.TrimLeft(lines[l], " "))
-// 					// count only '{' that have the same indentation level (top-level elements)
-// 					elementCount := -1
-// 					for m := l; m < N; m++ {
-// 						if strings.TrimSpace(lines[m]) == "{" {
-// 							indent := len(lines[m]) - len(strings.TrimLeft(lines[m], " "))
-// 							if indent == baseIndent {
-// 								elementCount++
-// 								if elementCount == targetIdx {
-// 									foundLine = m
-// 									break
-// 								}
-// 							}
-// 						}
-// 					}
-// 					break
-// 				}
-// 			}
-
-// 			if foundLine == -1 {
-// 				// couldn't find the requested array element; return 0 (or currentLine)
-// 				return currentLine
-// 			}
-
-// 			// Set current line to the element's opening '{' and advance parser state
-// 			currentLine = foundLine + 1
-// 			partIndex++
-// 			// continue scanning from the found element's line (so subsequent key matches happen inside it)
-// 			lineNum = foundLine + 1
-// 			continue
-// 		}
-
-// 		// Otherwise, look for a key on this line
-// 		keyPattern := fmt.Sprintf("\"%s\"\\s*:", regexp.QuoteMeta(currentPart))
-// 		matched, _ := regexp.MatchString(keyPattern, line)
-// 		if matched {
-// 			currentLine = lineNum + 1
-// 			lastKeyLine = lineNum
-// 			partIndex++
-// 			if partIndex >= len(parts) {
-// 				return currentLine
-// 			}
-// 		}
-
-// 		lineNum++
-// 	}
-
-// 	return currentLine
-// }
-
-// // isArrayIndex checks if a string is a number (array index)
-// func isArrayIndex(s string) bool {
-// 	_, err := strconv.Atoi(s)
-// 	return err == nil
-// }
-
-func GetLineNumber(jsonContent string, jsonPaths string) (int, error) {
+// getLineNumber extracts the line number from the JSON content for a given JSON path
+func getLineNumber(jsonContent string, jsonPaths string) (int, error) {
+	// get the result from the json content for its Index field
 	result := gjson.Get(jsonContent, jsonPaths)
 	if !result.Exists() {
 		return 0, fmt.Errorf("path '%s' not found in JSON", jsonPaths)
 	}
 
+	// get the line number from the index
 	offset := result.Index
-
 	lineNumber := 1 + strings.Count(jsonContent[:offset], "\n")
 
 	return lineNumber, nil
@@ -143,7 +51,7 @@ func getRiskLines(jsonFilePath string, riskPaths []interface{}) []int {
 			continue
 		}
 
-		lineNum, err := GetLineNumber(jsonContent, path)
+		lineNum, err := getLineNumber(jsonContent, path)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue
@@ -214,10 +122,10 @@ func main() {
 		panic(err)
 	}
 
-	// Extract risk paths
+	// extract risk paths
 	riskPathsInterface := resultSet[0].Bindings["risk_path"]
 
-	// Convert to slice for processing
+	// convert to slice for processing
 	var riskPaths []interface{}
 	switch v := riskPathsInterface.(type) {
 	case []interface{}:
@@ -226,7 +134,7 @@ func main() {
 		riskPaths = []interface{}{v}
 	}
 
-	// Get line numbers
+	// get line numbers
 	riskLines := getRiskLines(resourceDeclarationFileAbsolutePath, riskPaths)
 
 	fmt.Println("Risk Paths: ", resultSet[0].Bindings["risk_path"])
